@@ -1,0 +1,125 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Allow connection testing
+    match /test/connection {
+      allow get: if true;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function emailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // --- Entity Validations ---
+
+    function isValidUser(data) {
+      return data.uid == request.auth.uid 
+        && data.fullName is string && data.fullName.size() <= 100
+        && data.email is string && data.email.size() <= 100
+        && data.role in ['PLAYER', 'CLUB_ADMIN', 'EO', 'ADMIN', 'VIEWER']
+        && data.region in ['Cirebon', 'Indramayu', 'Majalengka', 'Kuningan']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPlayer(data) {
+      return data.userId == request.auth.uid
+        && data.positions is list
+        && data.dominantFoot in ['Left', 'Right', 'Both']
+        && (data.height == null || data.height is number)
+        && (data.weight == null || data.weight is number)
+        && (data.isOpenToJoin == null || data.isOpenToJoin is bool)
+        && (data.stats == null || data.stats is map)
+        && (data.rating == null || data.rating is number)
+        && (data.achievements == null || data.achievements is list);
+    }
+
+    // --- Collection Rules ---
+
+    // Users
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      
+      allow create: if isOwner(userId) && isValidUser(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+        
+      allow update: if isOwner(userId) && isValidUser(incoming()) 
+        && incoming().updatedAt == request.time
+        && incoming().createdAt == existing().createdAt
+        && incoming().uid == existing().uid
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['fullName', 'photoURL', 'region', 'updatedAt'])
+        );
+    }
+
+    // Players
+    match /players/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId) && isValidPlayer(incoming());
+      allow update: if isOwner(userId) && isValidPlayer(incoming())
+        && incoming().userId == existing().userId
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['nickname', 'positions', 'dominantFoot', 'height', 'weight', 'bio', 'highlightVideoUrl', 'isOpenToJoin', 'stats', 'rating', 'achievements'])
+        );
+    }
+
+    // Clubs
+    match /clubs/{clubId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && incoming().adminId == request.auth.uid;
+      allow update: if isSignedIn() && existing().adminId == request.auth.uid
+        && incoming().adminId == existing().adminId;
+    }
+
+    // Tournaments
+    match /tournaments/{tournamentId} {
+      allow read: if true;
+      allow create: if isSignedIn() && incoming().eoId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        existing().eoId == request.auth.uid || 
+        incoming().diff(existing()).affectedKeys().hasOnly(['participants'])
+      );
+    }
+
+    // Matches
+    match /matches/{matchId} {
+      allow read: if true;
+      allow write: if isSignedIn() && get(/databases/$(database)/documents/tournaments/$(incoming().tournamentId)).data.eoId == request.auth.uid;
+    }
+    
+    // Venues
+    match /venues/{venueId} {
+      allow read: if true;
+      allow write: if isSignedIn(); 
+    }
+  }
+}

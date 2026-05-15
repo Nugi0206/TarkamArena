@@ -1,0 +1,15 @@
+{
+  "name": "Tarkam Arena",
+  "description": "Ekosistem digital sepak bola tarkam (turnamen antar kampung) di wilayah CIAYUMAJAKUNING (Cirebon, Indramayu, Majalengka, Kuningan).",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "auth",
+    "database",
+    "realtime",
+    "storage"
+  ]
+}

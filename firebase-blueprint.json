@@ -1,0 +1,134 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Base user profile with role and region",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "fullName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["PLAYER", "CLUB_ADMIN", "EO", "ADMIN", "VIEWER"] },
+        "region": { "type": "string", "enum": ["Cirebon", "Indramayu", "Majalengka", "Kuningan"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "fullName", "email", "role", "region"]
+    },
+    "Player": {
+      "title": "Player",
+      "description": "Detailed player profile for athletes",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "nickname": { "type": "string" },
+        "positions": { "type": "array" },
+        "dominantFoot": { "type": "string", "enum": ["Left", "Right", "Both"] },
+        "height": { "type": "number" },
+        "weight": { "type": "number" },
+        "bio": { "type": "string" },
+        "highlightVideoUrl": { "type": "string" },
+        "isOpenToJoin": { "type": "boolean" },
+        "clubId": { "type": "string" },
+        "stats": {
+          "type": "object",
+          "properties": {
+            "matches": { "type": "number" },
+            "goals": { "type": "number" },
+            "assists": { "type": "number" },
+            "yellowCards": { "type": "number" },
+            "redCards": { "type": "number" }
+          }
+        },
+        "rating": { "type": "number" },
+        "achievements": { "type": "array" }
+      },
+      "required": ["userId", "positions", "dominantFoot"]
+    },
+    "Club": {
+      "title": "Club",
+      "description": "Football club profile",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "homeJerseyUrl": { "type": "string" },
+        "awayJerseyUrl": { "type": "string" },
+        "region": { "type": "string" },
+        "adminId": { "type": "string" },
+        "squad": { "type": "array" },
+        "achievements": { "type": "array" },
+        "stats": {
+          "type": "object",
+          "properties": {
+            "wins": { "type": "number" },
+            "draws": { "type": "number" },
+            "losses": { "type": "number" }
+          }
+        }
+      },
+      "required": ["name", "adminId", "region"]
+    },
+    "Tournament": {
+      "title": "Tournament",
+      "description": "Tournament event",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "eoId": { "type": "string" },
+        "description": { "type": "string" },
+        "bannerUrl": { "type": "string" },
+        "startDate": { "type": "string", "format": "date-time" },
+        "endDate": { "type": "string", "format": "date-time" },
+        "prize": { "type": "string" },
+        "status": { "type": "string", "enum": ["REGISTRATION", "ONGOING", "FINISHED"] },
+        "venueId": { "type": "string" },
+        "participants": { "type": "array" },
+        "bracketData": { "type": "object" }
+      },
+      "required": ["name", "eoId", "status"]
+    },
+    "Match": {
+      "title": "Match",
+      "description": "Individual match details",
+      "type": "object",
+      "properties": {
+        "tournamentId": { "type": "string" },
+        "homeTeamId": { "type": "string" },
+        "awayTeamId": { "type": "string" },
+        "venueId": { "type": "string" },
+        "scheduledAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["SCHEDULED", "LIVE", "FINISHED", "POSTPONED"] },
+        "homeScore": { "type": "number" },
+        "awayScore": { "type": "number" },
+        "matchDay": { "type": "number" },
+        "motmId": { "type": "string" }
+      },
+      "required": ["tournamentId", "homeTeamId", "awayTeamId", "status"]
+    },
+    "Venue": {
+      "title": "Venue",
+      "description": "Match stadium or field",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "location": { "type": "string" },
+        "lat": { "type": "number" },
+        "lng": { "type": "number" },
+        "grassCondition": { "type": "string" },
+        "facilities": { "type": "array" },
+        "photoUrls": { "type": "array" }
+      },
+      "required": ["name", "location"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": { "schema": "User", "description": "Global user profiles" },
+    "/players/{userId}": { "schema": "Player", "description": "Athletic profiles linked to users" },
+    "/clubs/{clubId}": { "schema": "Club", "description": "Tournament clubs" },
+    "/tournaments/{tournamentId}": { "schema": "Tournament", "description": "Tournaments organized by EO" },
+    "/matches/{matchId}": { "schema": "Match", "description": "All matches across all tournaments" },
+    "/venues/{venueId}": { "schema": "Venue", "description": "Registered venues" }
+  }
+}
