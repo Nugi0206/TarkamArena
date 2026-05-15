@@ -9,6 +9,7 @@ import TournamentDetail from "./pages/TournamentDetail";
 import ClubList from "./pages/ClubList";
 import PlayerList from "./pages/PlayerList";
 import Profile from "./pages/Profile";
+import CreateTournament from "./pages/CreateTournament";
 import Navigation from "./components/Navigation";
 import MobileNav from "./components/MobileNav";
 
@@ -32,6 +33,7 @@ export default function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/tournaments" element={<TournamentList />} />
               <Route path="/tournaments/:id" element={<TournamentDetail />} />
+              <Route path="/tournaments/create" element={<ProtectedRoute><CreateTournament /></ProtectedRoute>} />
               <Route path="/clubs" element={<ClubList />} />
               <Route path="/players" element={<PlayerList />} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

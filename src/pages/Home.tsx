@@ -1,16 +1,56 @@
-import React from "react";
-import { Trophy, Users, Shield, MapPin, Search, ChevronRight } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Trophy, Users, Shield, MapPin, Search, ChevronRight, Activity } from "lucide-react";
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
 import { cn } from "../lib/utils";
+import { collection, query, where, onSnapshot, limit, orderBy } from "firebase/firestore";
+import { db } from "../lib/firebase";
+import { Match, Tournament } from "../types";
 
 export default function Home() {
+  const [liveMatches, setLiveMatches] = useState<Match[]>([]);
+  const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Live Matches
+    const liveQuery = query(
+      collection(db, "matches"),
+      where("status", "==", "LIVE"),
+      limit(5)
+    );
+    
+    // Upcoming Matches
+    const upcomingQuery = query(
+      collection(db, "matches"),
+      where("status", "==", "SCHEDULED"),
+      orderBy("scheduledAt", "asc"),
+      limit(5)
+    );
+
+    const unsubLive = onSnapshot(liveQuery, (snapshot) => {
+      setLiveMatches(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Match[]);
+    });
+
+    const unsubUpcoming = onSnapshot(upcomingQuery, (snapshot) => {
+      setUpcomingMatches(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Match[]);
+      setLoading(false);
+    });
+
+    return () => {
+      unsubLive();
+      unsubUpcoming();
+    };
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* Hero Section */}
       <section className="relative h-64 md:h-80 glass rounded-3xl overflow-hidden flex flex-col justify-center px-8 md:px-16 border-l-4 border-l-neon shadow-2xl shadow-neon/10">
         <div className="absolute top-0 right-0 p-4">
-           <span className="bg-red-600 text-[10px] font-black px-2 py-0.5 rounded italic animate-pulse">LIVE - 74'</span>
+           {liveMatches.length > 0 && (
+             <span className="bg-red-600 text-[10px] font-black px-2 py-0.5 rounded italic animate-pulse">LIVE - {liveMatches.length} MATCHES</span>
+           )}
         </div>
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -43,12 +83,16 @@ export default function Home() {
       {/* Regions Bar */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {["Cirebon", "Indramayu", "Majalengka", "Kuningan"].map((region) => (
-          <div key={region} className="glass rounded-xl p-3 flex items-center justify-between border border-white/5 hover:border-neon/30 transition-all cursor-pointer group">
+          <Link 
+            key={region} 
+            to={`/tournaments?region=${region}`}
+            className="glass rounded-xl p-3 flex items-center justify-between border border-white/5 hover:border-neon/30 transition-all cursor-pointer group"
+          >
             <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider transition-colors group-hover:text-neon">{region}</span>
             <div className="w-5 h-5 rounded bg-white/5 flex items-center justify-center">
                <ChevronRight className="w-3 h-3 text-gray-700 group-hover:text-neon transition-colors" />
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
@@ -65,23 +109,34 @@ export default function Home() {
              </Link>
           </div>
           <div className="space-y-2">
-            <MatchItem 
-              homeTeam="Persitara FC" 
-              awayTeam="Majalengka Utd" 
-              homeScore={2} 
-              awayScore={1} 
-              status="LIVE" 
-              time="74'" 
-              tournament="BUPATI CUP"
-            />
-            <MatchItem 
-              homeTeam="Indramayu Star" 
-              awayTeam="Kuningan Boys" 
-              homeScore={0} 
-              awayScore={0} 
-              status="16:30" 
-              tournament="RAMADAN CUP"
-            />
+            {liveMatches.length === 0 && upcomingMatches.length === 0 && !loading && (
+              <div className="glass p-8 rounded-xl text-center border border-dashed border-white/5">
+                <p className="text-[10px] uppercase font-black text-gray-700 tracking-widest italic">Tidak ada pertandingan terjadwal</p>
+              </div>
+            )}
+            {liveMatches.map(match => (
+              <MatchItem 
+                key={match.id}
+                homeTeam={match.homeTeamId} 
+                awayTeam={match.awayTeamId} 
+                homeScore={match.homeScore} 
+                awayScore={match.awayScore} 
+                status="LIVE" 
+                time="LIVE" 
+                tournament="Tarkam Match"
+              />
+            ))}
+            {upcomingMatches.map(match => (
+              <MatchItem 
+                key={match.id}
+                homeTeam={match.homeTeamId} 
+                awayTeam={match.awayTeamId} 
+                homeScore={0} 
+                awayScore={0} 
+                status={new Date(match.scheduledAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} 
+                tournament="Upcoming"
+              />
+            ))}
           </div>
         </div>
 

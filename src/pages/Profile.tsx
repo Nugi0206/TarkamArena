@@ -76,6 +76,18 @@ export default function Profile() {
               <ActivityItem icon={<Award className="w-4 h-4" />} label="Achievements" />
               {profile.role === "PLAYER" && <ActivityItem icon={<Users className="w-4 h-4" />} label="My Club" />}
               {profile.role === "CLUB_ADMIN" && <ActivityItem icon={<Shield className="w-4 h-4" />} label="Manage Club" />}
+              {profile.role === "EO" && (
+                <button 
+                  onClick={() => navigate("/tournaments/create")}
+                  className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-800 transition-colors group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-slate-500 group-hover:text-neon transition-colors"><Trophy className="w-4 h-4" /></div>
+                    <span className="text-sm font-medium text-slate-400 group-hover:text-white transition-colors">Buat Turnamen</span>
+                  </div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-800 group-hover:bg-neon transition-colors" />
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -51,6 +51,14 @@ export interface Club {
   };
 }
 
+export interface MatchEvent {
+  type: "GOAL" | "YELLOW_CARD" | "RED_CARD" | "SUBSTITUTION";
+  minute: number;
+  playerId?: string;
+  teamId?: string;
+  description?: string;
+}
+
 export interface Match {
   id: string;
   tournamentId: string;
@@ -63,6 +71,7 @@ export interface Match {
   awayScore: number;
   matchDay?: number;
   motmId?: string;
+  events?: MatchEvent[];
 }
 
 export interface Tournament {

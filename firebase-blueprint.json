@@ -103,9 +103,26 @@
         "homeScore": { "type": "number" },
         "awayScore": { "type": "number" },
         "matchDay": { "type": "number" },
-        "motmId": { "type": "string" }
+        "motmId": { "type": "string" },
+        "events": { 
+          "type": "array",
+          "description": "Timeline of events (goals, cards, substitutions)"
+        }
       },
       "required": ["tournamentId", "homeTeamId", "awayTeamId", "status"]
+    },
+    "MatchEvent": {
+      "title": "Match Event",
+      "description": "A single event in a match like a goal or card",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["GOAL", "YELLOW_CARD", "RED_CARD", "SUBSTITUTION"] },
+        "minute": { "type": "number" },
+        "playerId": { "type": "string" },
+        "teamId": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["type", "minute"]
     },
     "Venue": {
       "title": "Venue",

@@ -1,7 +1,48 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Users, Search, Filter, MapPin, Award, Star, Activity } from "lucide-react";
+import { collection, query, getDocs, where, limit } from "firebase/firestore";
+import { db, handleFirestoreError, OperationType } from "../lib/firebase";
+import { PlayerProfile, UserProfile } from "../types";
+import { cn } from "../lib/utils";
 
 export default function PlayerList() {
+  const [players, setPlayers] = useState<(PlayerProfile & { user?: UserProfile })[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [regionFilter, setRegionFilter] = useState("All");
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      try {
+        const q = query(collection(db, "players"), limit(20));
+        const snapshot = await getDocs(q);
+        const playerDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as PlayerProfile[];
+        
+        // Fetch users for each player to get details like name and region
+        const enrichedPlayers = await Promise.all(playerDocs.map(async (player) => {
+          const userSnap = await getDocs(query(collection(db, "users"), where("uid", "==", player.userId)));
+          const user = userSnap.docs[0]?.data() as UserProfile;
+          return { ...player, user };
+        }));
+        
+        setPlayers(enrichedPlayers);
+      } catch (err) {
+        handleFirestoreError(err, OperationType.LIST, "players");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlayers();
+  }, []);
+
+  const filtered = players.filter(p => {
+    const matchesSearch = p.user?.fullName.toLowerCase().includes(search.toLowerCase()) || 
+                          p.nickname?.toLowerCase().includes(search.toLowerCase());
+    const matchesRegion = regionFilter === "All" || p.user?.region === regionFilter;
+    return matchesSearch && matchesRegion;
+  });
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -16,59 +57,80 @@ export default function PlayerList() {
             <input 
               type="text" 
               placeholder="SEARCH PLAYERS..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               className="md:w-80 bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-[10px] font-black uppercase tracking-widest focus:border-neon/50 outline-none transition-all placeholder:text-gray-700"
             />
           </div>
-          <button className="bg-white/5 border border-white/10 p-3 rounded-lg text-gray-500 hover:text-neon transition-colors">
-            <Filter className="w-4 h-4" />
-          </button>
+          <select 
+            value={regionFilter}
+            onChange={(e) => setRegionFilter(e.target.value)}
+            className="bg-white/5 border border-white/10 p-3 rounded-lg text-[10px] font-black uppercase tracking-widest outline-none focus:border-neon/50"
+          >
+            <option value="All">All Regions</option>
+            <option value="Cirebon">Cirebon</option>
+            <option value="Indramayu">Indramayu</option>
+            <option value="Majalengka">Majalengka</option>
+            <option value="Kuningan">Kuningan</option>
+          </select>
         </div>
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-          <div key={i} className="glass rounded-2xl overflow-hidden group hover:neon-border transition-all cursor-pointer">
-            <div className="h-44 relative bg-black/40">
-              <img 
-                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i * 123}`} 
-                alt="Player" 
-                className="w-full h-full object-contain grayscale group-hover:grayscale-0 transition-all duration-700" 
-              />
-              <div className="absolute top-2 left-2 flex flex-col gap-1">
-                <span className="bg-neon text-black text-[8px] font-black px-1.5 py-0.5 rounded italic">
-                  FW
-                </span>
-                <span className="bg-black/80 backdrop-blur-md text-[8px] font-black px-1.5 py-0.5 rounded text-white italic border border-white/5 flex items-center gap-1">
-                   4.8
-                </span>
-              </div>
-            </div>
-            <div className="p-4 space-y-4">
-              <div>
-                <h3 className="font-display font-black text-base group-hover:text-neon transition-colors uppercase tracking-tight">DWI ANGGARA</h3>
-                <div className="flex items-center gap-1 text-gray-600 text-[8px] font-bold uppercase tracking-widest mt-0.5">
-                  <MapPin className="w-2.5 h-2.5 text-neon" />
-                  <span>Kuningan</span>
+        {loading ? (
+          [1, 2, 3, 4].map(i => <div key={i} className="h-64 glass rounded-2xl animate-pulse" />)
+        ) : (
+          filtered.map((player) => (
+            <div key={player.userId} className="glass rounded-2xl overflow-hidden group hover:neon-border transition-all cursor-pointer">
+              <div className="h-44 relative bg-black/40">
+                <img 
+                  src={player.user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${player.userId}`} 
+                  alt="Player" 
+                  className="w-full h-full object-contain grayscale group-hover:grayscale-0 transition-all duration-700" 
+                />
+                <div className="absolute top-2 left-2 flex flex-col gap-1">
+                  <span className="bg-neon text-black text-[8px] font-black px-1.5 py-0.5 rounded italic">
+                    {player.positions[0] || "POS"}
+                  </span>
+                  <span className="bg-black/80 backdrop-blur-md text-[8px] font-black px-1.5 py-0.5 rounded text-white italic border border-white/5 flex items-center gap-1">
+                     {player.rating || "0.0"}
+                  </span>
                 </div>
               </div>
+              <div className="p-4 space-y-4">
+                <div>
+                  <h3 className="font-display font-black text-base group-hover:text-neon transition-colors uppercase tracking-tight truncate">
+                    {player.user?.fullName || "UNKNOWN PLAYER"}
+                  </h3>
+                  <div className="flex items-center gap-1 text-gray-600 text-[8px] font-bold uppercase tracking-widest mt-0.5">
+                    <MapPin className="w-2.5 h-2.5 text-neon" />
+                    <span>{player.user?.region || "Unknown Region"}</span>
+                  </div>
+                </div>
 
-              <div className="grid grid-cols-2 gap-2 py-3 border-y border-white/5">
-                 <div className="flex flex-col">
-                    <span className="text-[7px] font-black text-gray-600 uppercase tracking-widest">Goals</span>
-                    <span className="text-xs font-black text-white italic">12</span>
-                 </div>
-                 <div className="flex flex-col text-right">
-                    <span className="text-[7px] font-black text-gray-600 uppercase tracking-widest">Status</span>
-                    <span className="text-[8px] font-black text-neon uppercase italic">AVAIL</span>
-                 </div>
+                <div className="grid grid-cols-2 gap-2 py-3 border-y border-white/5">
+                   <div className="flex flex-col">
+                      <span className="text-[7px] font-black text-gray-600 uppercase tracking-widest">Goals</span>
+                      <span className="text-xs font-black text-white italic">{player.stats?.goals || 0}</span>
+                   </div>
+                   <div className="flex flex-col text-right">
+                      <span className="text-[7px] font-black text-gray-600 uppercase tracking-widest">Status</span>
+                      <span className={cn(
+                        "text-[8px] font-black uppercase italic",
+                        player.isOpenToJoin ? "text-neon" : "text-red-500"
+                      )}>
+                        {player.isOpenToJoin ? "AVAIL" : "IN CLUB"}
+                      </span>
+                   </div>
+                </div>
+
+                <button className="w-full bg-white/5 border border-white/10 hover:bg-neon hover:text-black py-2 rounded text-[9px] font-black uppercase tracking-widest transition-all italic">
+                  View Scouting Report
+                </button>
               </div>
-
-              <button className="w-full bg-white/5 border border-white/10 hover:bg-neon hover:text-black py-2 rounded text-[9px] font-black uppercase tracking-widest transition-all italic">
-                View Scouting Report
-              </button>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

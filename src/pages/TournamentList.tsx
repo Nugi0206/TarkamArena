@@ -3,13 +3,17 @@ import { collection, query, getDocs, where, orderBy } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType } from "../lib/firebase";
 import { Tournament } from "../types";
 import { Trophy, Calendar, MapPin, Search, Filter } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { formatDate, formatCurrency, cn } from "../lib/utils";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function TournamentList() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [searchParams] = useSearchParams();
+  const regionQuery = searchParams.get("region");
+  const { profile } = useAuth();
 
   useEffect(() => {
     const fetchTournaments = async () => {
@@ -28,7 +32,11 @@ export default function TournamentList() {
     fetchTournaments();
   }, []);
 
-  const filtered = tournaments.filter(t => t.name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = tournaments.filter(t => {
+    const matchesSearch = t.name.toLowerCase().includes(search.toLowerCase());
+    const matchesRegion = !regionQuery || t.name.toLowerCase().includes(regionQuery.toLowerCase()) || t.description.toLowerCase().includes(regionQuery.toLowerCase());
+    return matchesSearch && matchesRegion;
+  });
 
   return (
     <div className="space-y-8">
@@ -39,6 +47,15 @@ export default function TournamentList() {
         </div>
         
         <div className="flex items-center gap-3">
+          {profile?.role === "EO" && (
+            <Link 
+              to="/tournaments/create"
+              className="bg-neon text-black px-6 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest italic flex items-center gap-2 hover:shadow-[0_0_15px_rgba(180,255,0,0.3)] transition-all"
+            >
+              <Trophy className="w-4 h-4" />
+              Buat Turnamen
+            </Link>
+          )}
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon transition-colors" />
             <input 
