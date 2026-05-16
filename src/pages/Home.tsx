@@ -46,31 +46,46 @@ export default function Home() {
   return (
     <div className="space-y-6">
       {/* Hero Section */}
-      <section className="relative h-64 md:h-80 glass rounded-3xl overflow-hidden flex flex-col justify-center px-8 md:px-16 border-l-4 border-l-neon shadow-2xl shadow-neon/10">
+      <section className="relative h-[280px] md:h-80 glass rounded-3xl overflow-hidden flex flex-col justify-center px-6 md:px-16 border-l-4 border-l-neon shadow-2xl shadow-neon/10">
         <div className="absolute top-0 right-0 p-4">
            {liveMatches.length > 0 && (
              <span className="bg-red-600 text-[10px] font-black px-2 py-0.5 rounded italic animate-pulse">LIVE - {liveMatches.length} MATCHES</span>
            )}
         </div>
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="relative z-10"
         >
           <span className="text-neon text-[10px] font-black uppercase tracking-[0.3em] mb-2 block italic">
             Regional Ecosystem
           </span>
-          <h1 className="text-4xl md:text-5xl font-display font-black mb-4 leading-[0.9] tracking-tighter max-w-xl group">
-             DOMINASI <span className="text-neon">ARENA</span> TARKAM CIAYUMAJAKUNING
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-display font-black mb-6 leading-tight md:leading-[0.9] tracking-tighter max-w-xl group italic uppercase">
+             DOMINASI <span className="text-neon">ARENA</span><br className="md:hidden" /> TARKAM CIAYUMAJAKUNING
           </h1>
           <div className="flex flex-wrap gap-3">
-             <Link to="/tournaments" className="bg-neon text-black px-8 py-2.5 rounded text-[11px] font-black uppercase tracking-widest hover:bg-neon/90 transition-all active:scale-95">
-                Jelajahi Turnamen
+             <Link to="/tournaments" className="bg-neon text-black px-8 py-3 rounded text-[11px] font-black uppercase tracking-widest hover:bg-neon/90 transition-all active:scale-95 shadow-[0_0_20px_rgba(180,255,0,0.2)]">
+                Jelajahi Arena
              </Link>
-             <Link to="/register" className="bg-white/5 border border-white/10 hover:bg-white/10 px-8 py-2.5 rounded text-[11px] font-black uppercase tracking-widest transition-all">
-                Daftar Pemain
-             </Link>
+          </div>
+          
+          <div className="mt-8 hidden md:grid grid-cols-3 gap-8 max-w-2xl border-t border-white/5 pt-6">
+             <div className="space-y-1">
+                <span className="text-[8px] font-black text-neon uppercase tracking-widest">Pillar 01</span>
+                <p className="text-[10px] font-black text-white uppercase italic">Centralized Schedules</p>
+                <p className="text-[8px] text-gray-600 uppercase font-bold leading-relaxed">No more fragmented WA groups.</p>
+             </div>
+             <div className="space-y-1">
+                <span className="text-[8px] font-black text-neon uppercase tracking-widest">Pillar 02</span>
+                <p className="text-[10px] font-black text-white uppercase italic">Talent Database</p>
+                <p className="text-[8px] text-gray-600 uppercase font-bold leading-relaxed">Verified career stats for every player.</p>
+             </div>
+             <div className="space-y-1">
+                <span className="text-[8px] font-black text-neon uppercase tracking-widest">Pillar 03</span>
+                <p className="text-[10px] font-black text-white uppercase italic">Real-time Echo</p>
+                <p className="text-[8px] text-gray-600 uppercase font-bold leading-relaxed">Live scoring for neighborhood matches.</p>
+             </div>
           </div>
         </motion.div>
         
@@ -81,16 +96,16 @@ export default function Home() {
       </section>
 
       {/* Regions Bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 px-1">
         {["Cirebon", "Indramayu", "Majalengka", "Kuningan"].map((region) => (
           <Link 
             key={region} 
             to={`/tournaments?region=${region}`}
-            className="glass rounded-xl p-3 flex items-center justify-between border border-white/5 hover:border-neon/30 transition-all cursor-pointer group"
+            className="glass rounded-xl p-4 flex items-center justify-between border border-white/5 hover:border-neon/30 transition-all cursor-pointer group"
           >
-            <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider transition-colors group-hover:text-neon">{region}</span>
-            <div className="w-5 h-5 rounded bg-white/5 flex items-center justify-center">
-               <ChevronRight className="w-3 h-3 text-gray-700 group-hover:text-neon transition-colors" />
+            <span className="text-[10px] md:text-[11px] uppercase font-black text-gray-500 tracking-widest transition-colors group-hover:text-neon">{region}</span>
+            <div className="w-6 h-6 rounded bg-white/5 flex items-center justify-center border border-white/5">
+               <ChevronRight className="w-3 h-3 text-gray-700 group-hover:text-neon transition-all group-hover:translate-x-0.5" />
             </div>
           </Link>
         ))}

@@ -16,7 +16,7 @@ export default function PlayerList() {
       try {
         const q = query(collection(db, "players"), limit(20));
         const snapshot = await getDocs(q);
-        const playerDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as PlayerProfile[];
+        const playerDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as unknown as PlayerProfile[];
         
         // Fetch users for each player to get details like name and region
         const enrichedPlayers = await Promise.all(playerDocs.map(async (player) => {
@@ -76,6 +76,23 @@ export default function PlayerList() {
         </div>
       </div>
 
+      {/* Promotion CTA */}
+      <div className="glass p-8 rounded-[2rem] border border-neon/20 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group">
+         <div className="absolute top-0 right-0 w-64 h-64 bg-neon/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-neon/10 transition-colors" />
+         <div className="relative z-10 text-center md:text-left">
+            <h2 className="text-2xl font-display font-black uppercase italic tracking-tight">INGIN <span className="text-neon">PROMOSI</span> PROFIL KARIR?</h2>
+            <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest mt-1">Lengkapi syarat & ketentuan untuk tampil di bursa scouting</p>
+         </div>
+         <a 
+           href="https://wa.me/628123456789" // Example admin WA
+           target="_blank"
+           rel="noreferrer"
+           className="relative z-10 bg-neon text-black px-10 py-4 rounded-xl font-black uppercase text-[11px] tracking-[0.2em] shadow-lg shadow-neon/20 hover:shadow-neon/40 hover:scale-105 active:scale-95 transition-all italic flex items-center gap-2"
+          >
+            HUBUNGI ADMIN PORTAL
+         </a>
+      </div>
+
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         {loading ? (
           [1, 2, 3, 4].map(i => <div key={i} className="h-64 glass rounded-2xl animate-pulse" />)
@@ -99,16 +116,23 @@ export default function PlayerList() {
               </div>
               <div className="p-4 space-y-4">
                 <div>
-                  <h3 className="font-display font-black text-base group-hover:text-neon transition-colors uppercase tracking-tight truncate">
-                    {player.user?.fullName || "UNKNOWN PLAYER"}
-                  </h3>
+                  <div className="flex items-center justify-between">
+                     <h3 className="font-display font-black text-base group-hover:text-neon transition-colors uppercase tracking-tight truncate">
+                       {player.user?.fullName || "UNKNOWN PLAYER"}
+                     </h3>
+                  </div>
                   <div className="flex items-center gap-1 text-gray-600 text-[8px] font-bold uppercase tracking-widest mt-0.5">
                     <MapPin className="w-2.5 h-2.5 text-neon" />
                     <span>{player.user?.region || "Unknown Region"}</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 py-3 border-y border-white/5">
+                <div className="bg-neon/5 p-3 rounded-xl border border-neon/10 text-center">
+                   <p className="text-[7px] font-black text-gray-600 uppercase tracking-widest leading-none">Negotiation Price</p>
+                   <p className="text-sm font-display font-black text-neon uppercase italic tracking-tighter mt-1">{player.negotiationPrice || "Berdasarkan Match"}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 py-2 border-y border-white/5">
                    <div className="flex flex-col">
                       <span className="text-[7px] font-black text-gray-600 uppercase tracking-widest">Goals</span>
                       <span className="text-xs font-black text-white italic">{player.stats?.goals || 0}</span>
@@ -124,9 +148,14 @@ export default function PlayerList() {
                    </div>
                 </div>
 
-                <button className="w-full bg-white/5 border border-white/10 hover:bg-neon hover:text-black py-2 rounded text-[9px] font-black uppercase tracking-widest transition-all italic">
-                  View Scouting Report
-                </button>
+                <a 
+                  href={`https://wa.me/${player.contactWhatsApp}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full bg-neon text-black py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all italic flex items-center justify-center gap-2 hover:shadow-[0_0_15px_rgba(180,255,0,0.3)]"
+                >
+                  Negosiasi via WA
+                </a>
               </div>
             </div>
           ))

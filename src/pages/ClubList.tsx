@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Shield, Search, Filter, MapPin, Trophy, Users } from "lucide-react";
+import { Shield, Search, Filter, MapPin, Trophy, Users, Instagram, MessageCircle, X, Quote } from "lucide-react";
 import { collection, query, getDocs, limit } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType } from "../lib/firebase";
 import { Club } from "../types";
+import { motion, AnimatePresence } from "motion/react";
 
 export default function ClubList() {
   const [clubs, setClubs] = useState<Club[]>([]);
+  const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [loading, setLoading] = useState(true);
   const [regionFilter, setRegionFilter] = useState("All");
   const [search, setSearch] = useState("");
@@ -71,12 +73,16 @@ export default function ClubList() {
           [1, 2, 3].map(i => <div key={i} className="h-64 glass rounded-2xl animate-pulse" />)
         ) : (
           filtered.map((club) => (
-            <div key={club.id} className="glass p-5 rounded-2xl space-y-6 border border-white/5 hover:neon-border transition-all cursor-pointer group">
+            <div 
+              key={club.id} 
+              onClick={() => setSelectedClub(club)}
+              className="glass p-5 rounded-2xl space-y-6 border border-white/5 hover:neon-border transition-all cursor-pointer group"
+            >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center p-2 group-hover:bg-neon/10 group-hover:border-neon/30 transition-all">
                     {club.logoUrl ? (
-                      <img src={club.logoUrl} alt={club.name} className="w-full h-full object-contain" />
+                      <img src={club.logoUrl} alt={club.name} className="w-full h-full object-contain grayscale group-hover:grayscale-0 transition-all" />
                     ) : (
                       <Shield className="w-full h-full text-gray-600 group-hover:text-neon transition-colors" />
                     )}
@@ -125,6 +131,84 @@ export default function ClubList() {
           ))
         )}
       </div>
+
+      <AnimatePresence>
+        {selectedClub && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md"
+          >
+             <motion.div 
+               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+               className="glass max-w-xl w-full p-8 rounded-[3rem] border border-white/10 relative overflow-hidden"
+             >
+                <button onClick={() => setSelectedClub(null)} className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 transition-colors z-20"><X className="w-5 h-5 text-gray-500" /></button>
+                
+                <div className="flex flex-col items-center text-center space-y-6 relative z-10">
+                   <div className="w-24 h-24 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center p-4">
+                      {selectedClub.logoUrl ? (
+                        <img src={selectedClub.logoUrl} className="w-full h-full object-contain" alt="Logo" />
+                      ) : (
+                        <Shield className="w-full h-full text-gray-800" />
+                      )}
+                   </div>
+                   
+                   <div>
+                      <h2 className="text-3xl font-display font-black uppercase tracking-tighter text-white">{selectedClub.name}</h2>
+                      <p className="text-[10px] font-black text-neon uppercase tracking-[0.3em] mt-1">{selectedClub.region} DISTRICT</p>
+                   </div>
+
+                   <div className="grid grid-cols-2 gap-4 w-full">
+                      <div className="glass p-5 rounded-2xl border border-white/5 space-y-2">
+                         <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Jersey Kandang</span>
+                         <div className="aspect-square rounded-xl bg-white/5 overflow-hidden">
+                            {selectedClub.homeJerseyUrl ? (
+                              <img src={selectedClub.homeJerseyUrl} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-800"><Quote className="w-8 h-8 opacity-20" /></div>
+                            )}
+                         </div>
+                      </div>
+                      <div className="glass p-5 rounded-2xl border border-white/5 space-y-2">
+                         <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Jersey Tandang</span>
+                         <div className="aspect-square rounded-xl bg-white/5 overflow-hidden">
+                            {selectedClub.awayJerseyUrl ? (
+                              <img src={selectedClub.awayJerseyUrl} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-800"><Quote className="w-8 h-8 opacity-20" /></div>
+                            )}
+                         </div>
+                      </div>
+                   </div>
+
+                   <div className="w-full space-y-4">
+                      <div className="glass p-6 rounded-2xl border border-white/5 space-y-3">
+                         <h4 className="text-[10px] font-black text-neon uppercase tracking-widest italic text-left">About Club</h4>
+                         <p className="text-xs text-gray-400 leading-relaxed text-left italic">
+                            {selectedClub.description || "Klub belum menambahkan deskripsi profil."}
+                         </p>
+                      </div>
+
+                      <div className="flex gap-3">
+                         {selectedClub.instagramUrl && (
+                           <a href={selectedClub.instagramUrl} target="_blank" className="flex-1 bg-white/5 border border-white/10 p-4 rounded-xl flex items-center justify-center gap-3 group hover:border-neon transition-all">
+                              <Instagram className="w-5 h-5 text-gray-500 group-hover:text-neon" />
+                              <span className="text-[10px] font-black uppercase text-gray-500 group-hover:text-white">Instagram</span>
+                           </a>
+                         )}
+                         {selectedClub.whatsappNumber && (
+                           <a href={selectedClub.whatsappNumber} target="_blank" className="flex-1 bg-white/5 border border-white/10 p-4 rounded-xl flex items-center justify-center gap-3 group hover:border-neon transition-all">
+                              <MessageCircle className="w-5 h-5 text-gray-500 group-hover:text-neon" />
+                              <span className="text-[10px] font-black uppercase text-gray-500 group-hover:text-white">WhatsApp</span>
+                           </a>
+                         )}
+                      </div>
+                   </div>
+                </div>
+             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

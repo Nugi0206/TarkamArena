@@ -10,6 +10,11 @@ import ClubList from "./pages/ClubList";
 import PlayerList from "./pages/PlayerList";
 import Profile from "./pages/Profile";
 import CreateTournament from "./pages/CreateTournament";
+import ManageMatch from "./pages/ManageMatch";
+import SparingBoard from "./pages/SparingBoard";
+import ManageUsers from "./pages/ManageUsers";
+import ManageVenues from "./pages/ManageVenues";
+import ManageClub from "./pages/ManageClub";
 import Navigation from "./components/Navigation";
 import MobileNav from "./components/MobileNav";
 
@@ -34,8 +39,14 @@ export default function App() {
               <Route path="/tournaments" element={<TournamentList />} />
               <Route path="/tournaments/:id" element={<TournamentDetail />} />
               <Route path="/tournaments/create" element={<ProtectedRoute><CreateTournament /></ProtectedRoute>} />
+              <Route path="/tournaments/edit/:id" element={<ProtectedRoute><CreateTournament /></ProtectedRoute>} />
+              <Route path="/matches/:matchId/manage" element={<ProtectedRoute><ManageMatch /></ProtectedRoute>} />
+              <Route path="/sparing" element={<SparingBoard />} />
               <Route path="/clubs" element={<ClubList />} />
               <Route path="/players" element={<PlayerList />} />
+              <Route path="/admin/users" element={<ProtectedRoute><ManageUsers /></ProtectedRoute>} />
+              <Route path="/admin/venues" element={<ProtectedRoute><ManageVenues /></ProtectedRoute>} />
+              <Route path="/admin/clubs/:clubId/manage" element={<ProtectedRoute><ManageClub /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

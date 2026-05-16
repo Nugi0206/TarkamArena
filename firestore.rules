@@ -21,6 +21,10 @@ service cloud.firestore {
       return request.auth.token.email_verified == true;
     }
 
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == 'muhamadnugiandri@gmail.com';
+    }
+
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
@@ -37,64 +41,87 @@ service cloud.firestore {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    // --- Entity Validations ---
+    function isValidVenue(data) {
+      return data.name is string && data.name.size() <= 100
+        && data.location is string && data.location.size() <= 500
+        && (data.grassCondition == null || data.grassCondition is string)
+        && (data.photoUrls == null || data.photoUrls is list);
+    }
 
     function isValidUser(data) {
-      return data.uid == request.auth.uid 
-        && data.fullName is string && data.fullName.size() <= 100
-        && data.email is string && data.email.size() <= 100
-        && data.role in ['PLAYER', 'CLUB_ADMIN', 'EO', 'ADMIN', 'VIEWER']
-        && data.region in ['Cirebon', 'Indramayu', 'Majalengka', 'Kuningan']
-        && data.createdAt is timestamp
-        && data.updatedAt is timestamp;
+      let role = data.get('role', 'VIEWER');
+      let region = data.get('region', 'Cirebon');
+      return data.get('fullName', '') is string && data.get('fullName', '').size() <= 100
+        && role in ['PLAYER', 'CLUB_ADMIN', 'EO', 'ADMIN', 'VIEWER']
+        && region in ['Cirebon', 'Indramayu', 'Majalengka', 'Kuningan']
+        && (data.get('photographerInfo', null) == null || data.photographerInfo is string)
+        && (data.get('liveVideoInfo', null) == null || data.liveVideoInfo is string)
+        && (data.get('instagramUrl', null) == null || data.instagramUrl is string)
+        && (data.get('tiktokUrl', null) == null || data.tiktokUrl is string)
+        && (data.get('youtubeUrl', null) == null || data.youtubeUrl is string)
+        && (data.get('createdAt', request.time) is timestamp)
+        && (data.get('updatedAt', request.time) is timestamp);
     }
 
     function isValidPlayer(data) {
-      return data.userId == request.auth.uid
-        && data.positions is list
-        && data.dominantFoot in ['Left', 'Right', 'Both']
-        && (data.height == null || data.height is number)
-        && (data.weight == null || data.weight is number)
-        && (data.isOpenToJoin == null || data.isOpenToJoin is bool)
-        && (data.stats == null || data.stats is map)
-        && (data.rating == null || data.rating is number)
-        && (data.achievements == null || data.achievements is list);
+      return data.get('userId', request.auth.uid) == request.auth.uid
+        && (data.get('positions', []) is list)
+        && (data.get('dominantFoot', 'Right') in ['Left', 'Right', 'Both'])
+        && (data.get('height', null) == null || data.height is number)
+        && (data.get('weight', null) == null || data.weight is number)
+        && (data.get('isOpenToJoin', null) == null || data.isOpenToJoin is bool)
+        && (data.get('stats', null) == null || data.stats is map)
+        && (data.get('rating', null) == null || data.rating is number)
+        && (data.get('achievements', null) == null || data.achievements is list)
+        && (data.get('contactWhatsApp', null) == null || data.contactWhatsApp is string)
+        && (data.get('negotiationPrice', null) == null || data.negotiationPrice is string)
+        && (data.get('bio', null) == null || data.bio is string);
+    }
+
+    function isValidRegistration(data) {
+      return data.tournamentId is string
+        && data.clubName is string && data.clubName.size() <= 100
+        && data.managerName is string && data.managerName.size() <= 100
+        && data.status in ['PENDING', 'APPROVED', 'REJECTED', 'PAID']
+        && data.contactWhatsApp is string && data.contactWhatsApp.size() <= 20
+        && data.registeredAt is timestamp;
+    }
+
+    function isValidSparing(data) {
+      return data.clubName is string && data.clubName.size() <= 100
+        && data.venue is string && data.venue.size() <= 100
+        && data.dateTime is timestamp
+        && data.status in ['OPEN', 'FOUND']
+        && data.contactWhatsApp is string && data.contactWhatsApp.size() <= 20
+        && (data.region == null || data.region is string);
     }
 
     // --- Collection Rules ---
 
     // Users
     match /users/{userId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
+      allow get: if true;
+      allow list: if true;
       
-      allow create: if isOwner(userId) && isValidUser(incoming())
-        && incoming().createdAt == request.time
-        && incoming().updatedAt == request.time;
-        
-      allow update: if isOwner(userId) && isValidUser(incoming()) 
-        && incoming().updatedAt == request.time
-        && incoming().createdAt == existing().createdAt
-        && incoming().uid == existing().uid
-        && (
-          incoming().diff(existing()).affectedKeys().hasOnly(['fullName', 'photoURL', 'region', 'updatedAt'])
-        );
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if (isOwner(userId) || isAdmin()) && isValidUser(incoming());
+      allow delete: if isAdmin();
     }
 
     // Players
     match /players/{userId} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow create: if isOwner(userId) && isValidPlayer(incoming());
       allow update: if isOwner(userId) && isValidPlayer(incoming())
         && incoming().userId == existing().userId
         && (
-          incoming().diff(existing()).affectedKeys().hasOnly(['nickname', 'positions', 'dominantFoot', 'height', 'weight', 'bio', 'highlightVideoUrl', 'isOpenToJoin', 'stats', 'rating', 'achievements'])
+          incoming().diff(existing()).affectedKeys().hasOnly(['nickname', 'positions', 'dominantFoot', 'height', 'weight', 'bio', 'contactWhatsApp', 'negotiationPrice', 'highlightVideoUrl', 'isOpenToJoin', 'stats', 'rating', 'achievements', 'updatedAt'])
         );
     }
 
     // Clubs
     match /clubs/{clubId} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow create: if isSignedIn() && incoming().adminId == request.auth.uid;
       allow update: if isSignedIn() && existing().adminId == request.auth.uid
         && incoming().adminId == existing().adminId;
@@ -103,23 +130,49 @@ service cloud.firestore {
     // Tournaments
     match /tournaments/{tournamentId} {
       allow read: if true;
-      allow create: if isSignedIn() && incoming().eoId == request.auth.uid;
+      allow create: if isSignedIn() && (incoming().eoId == request.auth.uid || isAdmin());
       allow update: if isSignedIn() && (
         existing().eoId == request.auth.uid || 
+        isAdmin() ||
         incoming().diff(existing()).affectedKeys().hasOnly(['participants'])
       );
+      allow delete: if isAdmin();
     }
 
     // Matches
     match /matches/{matchId} {
       allow read: if true;
-      allow write: if isSignedIn() && get(/databases/$(database)/documents/tournaments/$(incoming().tournamentId)).data.eoId == request.auth.uid;
+      allow write: if isSignedIn() && (
+        get(/databases/$(database)/documents/tournaments/$(incoming().tournamentId)).data.eoId == request.auth.uid ||
+        get(/databases/$(database)/documents/tournaments/$(existing().tournamentId)).data.eoId == request.auth.uid
+      );
+    }
+    
+    // Registrations
+    match /registrations/{registrationId} {
+      allow create: if isValidRegistration(incoming())
+        && incoming().registeredAt == request.time;
+      allow read, update: if true; // Public list or update for EO
+    }
+
+    // Sparing
+    match /sparing/{sparingId} {
+      allow read: if true;
+      allow create: if isValidSparing(incoming());
+      allow update: if true; // Public update for now since clubs don't login
+    }
+
+    // Tickets
+    match /tickets/{ticketId} {
+      allow read: if true;
+      allow create: if true;
     }
     
     // Venues
     match /venues/{venueId} {
       allow read: if true;
-      allow write: if isSignedIn(); 
+      allow write: if (isSignedIn() && isValidVenue(incoming())) || isAdmin(); 
+      allow delete: if isAdmin();
     }
   }
 }

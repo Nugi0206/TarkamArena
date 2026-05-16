@@ -28,6 +28,8 @@
         "height": { "type": "number" },
         "weight": { "type": "number" },
         "bio": { "type": "string" },
+        "contactWhatsApp": { "type": "string" },
+        "negotiationPrice": { "type": "string" },
         "highlightVideoUrl": { "type": "string" },
         "isOpenToJoin": { "type": "boolean" },
         "clubId": { "type": "string" },
@@ -78,16 +80,19 @@
         "name": { "type": "string" },
         "eoId": { "type": "string" },
         "description": { "type": "string" },
+        "termsAndConditions": { "type": "string" },
+        "registrationFee": { "type": "number" },
         "bannerUrl": { "type": "string" },
         "startDate": { "type": "string", "format": "date-time" },
         "endDate": { "type": "string", "format": "date-time" },
         "prize": { "type": "string" },
         "status": { "type": "string", "enum": ["REGISTRATION", "ONGOING", "FINISHED"] },
         "venueId": { "type": "string" },
+        "location": { "type": "string" },
         "participants": { "type": "array" },
         "bracketData": { "type": "object" }
       },
-      "required": ["name", "eoId", "status"]
+      "required": ["name", "eoId", "status", "registrationFee", "termsAndConditions"]
     },
     "Match": {
       "title": "Match",
@@ -138,6 +143,49 @@
         "photoUrls": { "type": "array" }
       },
       "required": ["name", "location"]
+    },
+    "Registration": {
+      "title": "Registration",
+      "description": "A club's application to join a tournament",
+      "type": "object",
+      "properties": {
+        "tournamentId": { "type": "string" },
+        "clubName": { "type": "string" },
+        "managerName": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED", "PAID"] },
+        "contactWhatsApp": { "type": "string" },
+        "registeredAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["tournamentId", "clubName", "status", "contactWhatsApp"]
+    },
+    "Sparing": {
+      "title": "Sparing Request",
+      "description": "Club looking for a friendly match",
+      "type": "object",
+      "properties": {
+        "clubName": { "type": "string" },
+        "venue": { "type": "string" },
+        "dateTime": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["OPEN", "FOUND"] },
+        "contactWhatsApp": { "type": "string" },
+        "region": { "type": "string" },
+        "postedBy": { "type": "string" }
+      },
+      "required": ["clubName", "venue", "status", "contactWhatsApp"]
+    },
+    "Ticket": {
+      "title": "Tournament Ticket",
+      "description": "E-ticket for entry",
+      "type": "object",
+      "properties": {
+        "tournamentId": { "type": "string" },
+        "buyerName": { "type": "string" },
+        "price": { "type": "number" },
+        "status": { "type": "string", "enum": ["PAID", "USED"] },
+        "purchasedAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
+      },
+      "required": ["tournamentId", "buyerName"]
     }
   },
   "firestore": {
@@ -146,6 +194,9 @@
     "/clubs/{clubId}": { "schema": "Club", "description": "Tournament clubs" },
     "/tournaments/{tournamentId}": { "schema": "Tournament", "description": "Tournaments organized by EO" },
     "/matches/{matchId}": { "schema": "Match", "description": "All matches across all tournaments" },
-    "/venues/{venueId}": { "schema": "Venue", "description": "Registered venues" }
+    "/venues/{venueId}": { "schema": "Venue", "description": "Registered venues" },
+    "/registrations/{registrationId}": { "schema": "Registration", "description": "Club tournament applications" },
+    "/sparing/{sparingId}": { "schema": "Sparing", "description": "Sparing requests" },
+    "/tickets/{ticketId}": { "schema": "Ticket", "description": "Match tickets" }
   }
 }

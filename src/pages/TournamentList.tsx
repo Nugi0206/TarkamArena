@@ -34,7 +34,10 @@ export default function TournamentList() {
 
   const filtered = tournaments.filter(t => {
     const matchesSearch = t.name.toLowerCase().includes(search.toLowerCase());
-    const matchesRegion = !regionQuery || t.name.toLowerCase().includes(regionQuery.toLowerCase()) || t.description.toLowerCase().includes(regionQuery.toLowerCase());
+    const matchesRegion = !regionQuery || 
+      (t.region && t.region.toLowerCase() === regionQuery.toLowerCase()) ||
+      t.name.toLowerCase().includes(regionQuery.toLowerCase()) || 
+      t.description.toLowerCase().includes(regionQuery.toLowerCase());
     return matchesSearch && matchesRegion;
   });
 
@@ -42,33 +45,35 @@ export default function TournamentList() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-1">
-          <span className="text-neon text-[10px] font-black uppercase tracking-[0.3em] block italic">Competition Central</span>
-          <h1 className="text-4xl font-display font-black tracking-tighter uppercase">Turnamen <span className="text-neon">Arena</span></h1>
+          <span className="text-neon text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] block italic">Competition Central</span>
+          <h1 className="text-3xl md:text-4xl font-display font-black tracking-tighter uppercase">Turnamen <span className="text-neon">Arena</span></h1>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row md:items-center gap-3">
           {profile?.role === "EO" && (
             <Link 
               to="/tournaments/create"
-              className="bg-neon text-black px-6 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest italic flex items-center gap-2 hover:shadow-[0_0_15px_rgba(180,255,0,0.3)] transition-all"
+              className="bg-neon text-black px-6 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest italic flex items-center justify-center gap-2 hover:shadow-[0_0_15px_rgba(180,255,0,0.3)] transition-all order-2 sm:order-1"
             >
               <Trophy className="w-4 h-4" />
               Buat Turnamen
             </Link>
           )}
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon transition-colors" />
-            <input 
-              type="text" 
-              placeholder="SEARCH TOURNAMENTS..." 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="md:w-80 bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-[10px] font-black uppercase tracking-widest focus:border-neon/50 outline-none transition-all placeholder:text-gray-700"
-            />
+          <div className="flex items-center gap-2 order-1 sm:order-2">
+            <div className="relative group flex-1 sm:flex-initial">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon transition-colors" />
+              <input 
+                type="text" 
+                placeholder="SEARCH..." 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full sm:w-48 md:w-80 bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-[10px] font-black uppercase tracking-widest focus:border-neon/50 outline-none transition-all placeholder:text-gray-700"
+              />
+            </div>
+            <button className="bg-white/5 border border-white/10 p-3 rounded-lg text-gray-500 hover:text-neon transition-colors">
+              <Filter className="w-4 h-4" />
+            </button>
           </div>
-          <button className="bg-white/5 border border-white/10 p-3 rounded-lg text-gray-500 hover:text-neon transition-colors">
-            <Filter className="w-4 h-4" />
-          </button>
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Trophy, Users, Shield, Home, User } from "lucide-react";
+import { Trophy, Users, Shield, Home, User, Zap } from "lucide-react";
 import { cn } from "../lib/utils";
 
 export default function MobileNav() {
@@ -8,10 +8,11 @@ export default function MobileNav() {
 
   const navItems = [
     { label: "Home", href: "/", icon: Home },
-    { label: "Tournaments", href: "/tournaments", icon: Trophy },
+    { label: "Arena", href: "/tournaments", icon: Trophy },
+    { label: "Sparing", href: "/sparing", icon: Zap },
     { label: "Clubs", href: "/clubs", icon: Shield },
-    { label: "Players", href: "/players", icon: Users },
-    { label: "Profile", href: "/profile", icon: User },
+    { label: "Scout", href: "/players", icon: Users },
+    { label: "Pro", href: "/profile", icon: User },
   ];
 
   return (
