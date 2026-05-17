@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Trophy, Users, Shield, MapPin, User, Search, Home, Zap } from "lucide-react";
+import { Trophy, Users, Shield, MapPin, User, Search, Home, Zap, MessageCircle } from "lucide-react";
 import { cn } from "../lib/utils";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -14,6 +14,7 @@ export default function Navigation() {
     { label: "Sparing", href: "/sparing", icon: Zap },
     { label: "Clubs", href: "/clubs", icon: Shield },
     { label: "Scout", href: "/players", icon: Users },
+    { label: "Bantuan", href: "https://wa.me/628993358221", icon: MessageCircle, external: true },
   ];
 
   return (
@@ -31,6 +32,19 @@ export default function Navigation() {
             <div className="flex items-center gap-6">
               {navItems.map((item) => {
                 const isActive = location.pathname === item.href;
+                if (item.external) {
+                  return (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs font-black uppercase tracking-widest transition-colors hover:text-neon text-gray-400"
+                    >
+                      {item.label}
+                    </a>
+                  );
+                }
                 return (
                   <Link
                     key={item.href}

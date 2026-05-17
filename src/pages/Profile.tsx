@@ -174,6 +174,19 @@ export default function Profile() {
                   <div className="w-1.5 h-1.5 rounded-full bg-white/5 group-hover:bg-neon transition-colors" />
                 </button>
               )}
+              
+              <a 
+                href="https://wa.me/628993358221"
+                target="_blank"
+                rel="noreferrer"
+                className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="text-gray-500 group-hover:text-neon transition-colors"><MessageCircle className="w-4 h-4" /></div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-white transition-colors">Pusat Bantuan</span>
+                </div>
+                <div className="w-1.5 h-1.5 rounded-full bg-white/5 group-hover:bg-neon transition-colors" />
+              </a>
               {profile.role === "EO" && (
                 <>
                   <button 

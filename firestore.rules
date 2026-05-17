@@ -51,8 +51,10 @@ service cloud.firestore {
     function isValidUser(data) {
       let role = data.get('role', 'VIEWER');
       let region = data.get('region', 'Cirebon');
+      let isAdminEmail = request.auth.token.email == 'muhamadnugiandri@gmail.com';
       return data.get('fullName', '') is string && data.get('fullName', '').size() <= 100
         && role in ['PLAYER', 'CLUB_ADMIN', 'EO', 'ADMIN', 'VIEWER']
+        && (role == 'ADMIN' ? isAdminEmail : true)
         && region in ['Cirebon', 'Indramayu', 'Majalengka', 'Kuningan']
         && (data.get('photographerInfo', null) == null || data.photographerInfo is string)
         && (data.get('liveVideoInfo', null) == null || data.liveVideoInfo is string)

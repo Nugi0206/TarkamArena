@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Trophy, Users, Shield, Home, User, Zap } from "lucide-react";
+import { Trophy, Users, Shield, Home, User, Zap, MessageCircle } from "lucide-react";
 import { cn } from "../lib/utils";
 
 export default function MobileNav() {
@@ -10,8 +10,7 @@ export default function MobileNav() {
     { label: "Home", href: "/", icon: Home },
     { label: "Arena", href: "/tournaments", icon: Trophy },
     { label: "Sparing", href: "/sparing", icon: Zap },
-    { label: "Clubs", href: "/clubs", icon: Shield },
-    { label: "Scout", href: "/players", icon: Users },
+    { label: "Bantuan", href: "https://wa.me/628993358221", icon: MessageCircle, external: true },
     { label: "Pro", href: "/profile", icon: User },
   ];
 
@@ -20,6 +19,24 @@ export default function MobileNav() {
       {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = location.pathname === item.href;
+        if (item.external) {
+          return (
+            <a
+              key={item.href}
+              href={item.href}
+              target="_blank"
+              rel="noreferrer"
+              className="flex flex-col items-center gap-1 group"
+            >
+              <div className="text-gray-600 transition-all group-active:scale-90 group-hover:text-neon">
+                <Icon className="w-5 h-5" />
+              </div>
+              <span className="text-[8px] font-black uppercase tracking-tighter text-gray-600 transition-colors group-hover:text-neon">
+                {item.label}
+              </span>
+            </a>
+          );
+        }
         return (
           <Link
             key={item.href}

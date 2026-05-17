@@ -12,29 +12,12 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleGoogleLogin = async () => {
-    try {
-      setLoading(true);
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      
-      const docRef = doc(db, "users", result.user.uid);
-      const docSnap = await getDoc(docRef);
-      
-      if (!docSnap.exists()) {
-        navigate("/register", { state: { googleUser: result.user } });
-      } else {
-        navigate("/");
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (email.toLowerCase() !== "muhamadnugiandri@gmail.com") {
+      setError("Akses Ditolak: Hanya Admin yang dapat masuk.");
+      return;
+    }
     try {
       setLoading(true);
       await signInWithEmailAndPassword(auth, email, password);
@@ -58,29 +41,14 @@ export default function Login() {
           </div>
           <div>
             <h1 className="text-4xl font-display font-black uppercase italic tracking-tighter text-white">Tarkam <span className="text-neon underline decoration-neon/20 underline-offset-8">Arena</span></h1>
-            <p className="text-gray-500 font-black uppercase tracking-[0.2em] text-[10px] mt-2 italic">Official EO & Admin Access</p>
+            <p className="text-gray-500 font-black uppercase tracking-[0.2em] text-[10px] mt-2 italic">Official Admin Access Only</p>
           </div>
         </div>
 
         <div className="glass p-8 rounded-[2.5rem] border border-white/5 space-y-6 shadow-2xl">
-          <button 
-            onClick={handleGoogleLogin}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-neon transition-all hover:shadow-[0_0_20px_rgba(180,255,0,0.3)] disabled:opacity-50"
-          >
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/layout/google.svg" className="w-5 h-5 font-bold" alt="Google" />
-            Lanjut dengan Google
-          </button>
-
-          <div className="relative flex items-center py-2">
-            <div className="flex-grow border-t border-white/5"></div>
-            <span className="flex-shrink mx-4 text-gray-700 text-[9px] font-black uppercase tracking-widest">Atau Gunakan Email</span>
-            <div className="flex-grow border-t border-white/5"></div>
-          </div>
-
           <form onSubmit={handleEmailLogin} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">Account Email</label>
+              <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">Admin Email</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-700 group-focus-within:text-neon transition-colors" />
                 <input 
